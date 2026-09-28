@@ -1,0 +1,18 @@
+services:
+  gpstag:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PB_VERSION: "0.40.4"
+    container_name: gpstag-dev
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    environment:
+      - TZ=Europe/Amsterdam
+    volumes:
+      - ./pb_data:/pb/pb_data
+      # Live bewerken van de frontend zonder rebuild
+      - ./pb_public:/pb/pb_public
+      - ./pb_migrations:/pb/pb_migrations
