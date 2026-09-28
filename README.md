@@ -32,7 +32,7 @@ De collecties worden automatisch aangemaakt door `pb_migrations/`. Alle API-rege
 
 ## Build
 
-`.github/workflows/build.yml` controleert de JS-syntax en bouwt een multi-arch image (amd64/arm64) naar `ghcr.io/s4ndyp/gpstag`: `latest` voor `main`, branchnaam voor andere branches, semver voor `v*`-tags. Pull requests worden alleen gebouwd, niet gepusht.
+`.github/workflows/build.yml` controleert de JS-syntax en bouwt een multi-arch image (amd64/arm64) naar `ghcr.io/s4ndyp/gpstag`: `latest` en een korte commit-SHA. Alleen pushes naar `main` (of handmatig starten) triggeren een build.
 
 ## OwnTracks (automatisch op de achtergrond)
 
