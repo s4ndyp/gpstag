@@ -19,12 +19,14 @@ RUN apk add --no-cache ca-certificates tzdata unzip wget \
 
 COPY pb_public/ /pb/pb_public/
 COPY pb_migrations/ /pb/pb_migrations/
+COPY pb_hooks/ /pb/pb_hooks/
 
 RUN test -f /pb/pb_public/index.html \
     && test -f /pb/pb_public/js/app.js \
     && test -f /pb/pb_public/manifest.webmanifest \
     && test -f /pb/pb_public/sw.js \
-    && ls /pb/pb_migrations/*.js >/dev/null 2>&1
+    && ls /pb/pb_migrations/*.js >/dev/null 2>&1 \
+    && test -f /pb/pb_hooks/owntracks.pb.js
 
 WORKDIR /pb
 
@@ -35,4 +37,4 @@ VOLUME ["/pb/pb_data"]
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD wget -q -O /dev/null http://127.0.0.1:8090/api/health || exit 1
 
-CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8090", "--dir", "/pb/pb_data", "--publicDir", "/pb/pb_public", "--migrationsDir", "/pb/pb_migrations", "--indexFallback=true"]
+CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8090", "--dir", "/pb/pb_data", "--publicDir", "/pb/pb_public", "--migrationsDir", "/pb/pb_migrations", "--hooksDir", "/pb/pb_hooks", "--indexFallback=true"]

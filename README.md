@@ -34,6 +34,18 @@ De collecties worden automatisch aangemaakt door `pb_migrations/`. Alle API-rege
 
 `.github/workflows/build.yml` controleert de JS-syntax en bouwt een multi-arch image (amd64/arm64) naar `ghcr.io/s4ndyp/gpstag`: `latest` voor `main`, branchnaam voor andere branches, semver voor `v*`-tags. Pull requests worden alleen gebouwd, niet gepusht.
 
-## Later
+## OwnTracks (automatisch op de achtergrond)
 
-Automatisch en op de achtergrond posities versturen op mobiel (`source` veld is daar al op voorbereid).
+Installeer [OwnTracks](https://owntracks.org) (Android / iOS) en stel in:
+
+| Instelling | Waarde |
+|------------|--------|
+| Mode | **HTTP** |
+| URL / Host | `https://<jouw-domein>/api/owntracks` |
+| Username | je GPSTag-gebruikersnaam (bestaat die nog niet, dan wordt hij aangemaakt) |
+| Password | leeg of willekeurig (wordt niet gecontroleerd) |
+| Device ID / Tracker ID | vrij te kiezen, bijv. `telefoon` / 2 letters |
+
+Posities komen binnen met `source: "owntracks"`. OwnTracks krijgt als antwoord de laatste positie van de andere GPSTag-gebruikers, zodat die in de app als vrienden zichtbaar zijn. Via de *Monitoring*-modus in OwnTracks bepaal je hoe vaak er gestuurd wordt (bijv. *Significant* of *Move*).
+
+Het endpoint (`pb_hooks/owntracks.pb.js`) herkent de gebruiker via de `X-Limit-U`-header, de Basic Auth-gebruikersnaam of `?u=<naam>` in de URL.

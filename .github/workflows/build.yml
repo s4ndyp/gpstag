@@ -25,7 +25,7 @@ jobs:
 
       - name: Controleer JavaScript syntax
         run: |
-          for f in pb_public/js/*.js pb_public/sw.js pb_migrations/*.js; do
+          for f in pb_public/js/*.js pb_public/sw.js pb_migrations/*.js pb_hooks/*.js; do
             node --check "$f"
           done
 
