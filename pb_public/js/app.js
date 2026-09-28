@@ -86,7 +86,7 @@
     });
   }
 
-  async function sendPosition() {
+  async function sendPosition(source = "manual") {
     const userId = $("user-select").value;
     const status = $("send-status");
     const btn = $("send-btn");
@@ -94,7 +94,7 @@
     if (!userId) {
       status.textContent = "Kies of maak eerst een gebruiker.";
       status.classList.add("error");
-      return;
+      return false;
     }
     btn.disabled = true;
     status.textContent = "Locatie bepalen…";
@@ -112,17 +112,68 @@
           speed: c.speed,
           heading: c.heading,
           recorded_at: pbDate(new Date(pos.timestamp)),
-          source: "manual",
+          source,
         }),
       });
       status.textContent = `Opgeslagen: ${c.latitude.toFixed(5)}, ${c.longitude.toFixed(5)} (±${Math.round(c.accuracy)} m)`;
       loadRecent();
+      return true;
     } catch (err) {
       status.textContent = "Mislukt: " + (err.message || "onbekende fout");
       status.classList.add("error");
+      return false;
     } finally {
       btn.disabled = false;
     }
+  }
+
+  // ---------- Auto send ----------
+  // Browsers suspend JS in the background, so this only runs while the app is visible;
+  // an overdue send is caught up as soon as the app becomes visible again.
+  const AUTO_KEY = "gpstag.auto";
+  const AUTO_LAST_KEY = "gpstag.autoLast";
+  const AUTO_INTERVAL = 60 * 60 * 1000;
+  let autoBusy = false;
+
+  const autoEnabled = () => localStorage.getItem(AUTO_KEY) === "1";
+
+  function renderAutoStatus() {
+    const el = $("auto-status");
+    if (!autoEnabled()) {
+      el.textContent = "Werkt alleen zolang de app open is.";
+      return;
+    }
+    const last = Number(localStorage.getItem(AUTO_LAST_KEY)) || 0;
+    const next = new Date(Math.max(Date.now(), last + AUTO_INTERVAL));
+    const t = (d) => d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
+    el.textContent = (last ? `Laatst automatisch: ${t(new Date(last))} · ` : "") + `Volgende: ${t(next)} (app moet open zijn)`;
+  }
+
+  async function autoTick() {
+    if (!autoEnabled() || autoBusy || document.visibilityState !== "visible") return;
+    const last = Number(localStorage.getItem(AUTO_LAST_KEY)) || 0;
+    if (Date.now() - last < AUTO_INTERVAL) return;
+    autoBusy = true;
+    try {
+      if (await sendPosition("auto")) localStorage.setItem(AUTO_LAST_KEY, String(Date.now()));
+    } finally {
+      autoBusy = false;
+      renderAutoStatus();
+    }
+  }
+
+  function initAuto() {
+    const toggle = $("auto-toggle");
+    toggle.checked = autoEnabled();
+    toggle.addEventListener("change", () => {
+      localStorage.setItem(AUTO_KEY, toggle.checked ? "1" : "0");
+      renderAutoStatus();
+      autoTick();
+    });
+    document.addEventListener("visibilitychange", autoTick);
+    setInterval(() => { renderAutoStatus(); autoTick(); }, 60 * 1000);
+    renderAutoStatus();
+    autoTick();
   }
 
   async function loadRecent() {
@@ -250,7 +301,7 @@
         alert("Gebruiker aanmaken mislukt: " + err.message);
       }
     });
-    $("send-btn").addEventListener("click", sendPosition);
+    $("send-btn").addEventListener("click", () => sendPosition("manual"));
 
     document.querySelectorAll(".presets .chip").forEach((chip) =>
       chip.addEventListener("click", () => {
@@ -298,6 +349,7 @@
       $("send-status").textContent = "Kan database niet bereiken: " + err.message;
       $("send-status").classList.add("error");
     }
+    initAuto();
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
   }
 

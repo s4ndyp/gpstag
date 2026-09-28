@@ -1,4 +1,4 @@
-const CACHE = "gpstag-v2";
+const CACHE = "gpstag-v3";
 const ASSETS = [
   "/",
   "/index.html",
